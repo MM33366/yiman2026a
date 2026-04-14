@@ -33,6 +33,7 @@ def index():
     link += "<a href=/account>POST傳值(帳號密碼)</a><hr>"
     link += "<a href=/math>數學運算</a><hr>"
     link += "<a href=/cup>擲茭</a><hr>"
+    link += "<a href=/search>查詢老師研究室</a><hr>"
     link += "<a href=/read>讀取Firestore資料(根據lab遞減排序,取前4)</a><br>"
 
     return link
@@ -138,6 +139,23 @@ def cup():
         
     return render_template('cup.html', result=result)
 
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    if request.method == "POST":
+        keyword = request.form["keyword"]
+        db = firestore.client()
+        collection_ref = db.collection("靜宜資管2026a")
+        docs = collection_ref.get()
+        
+        results = []
+        for doc in docs:
+            user = doc.to_dict()
+            if keyword in user.get("name", ""):
+                results.append(f"{user['name']}老師的研究室是在{user['lab']}")
+        
+        return render_template("search.html", results=results, keyword=keyword)
+    else:
+        return render_template("search.html", results=None)
 
 if __name__ == "__main__":
     app.run(debug=True)
