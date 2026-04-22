@@ -1,3 +1,6 @@
+import requests
+from bs4 import BeautifulSoup
+
 import os
 import json
 import firebase_admin
@@ -34,8 +37,8 @@ def index():
     link += "<a href=/math>數學運算</a><hr>"
     link += "<a href=/cup>擲茭</a><hr>"
     link += "<a href=/search>查詢老師研究室</a><hr>"
-    link += "<a href=/read>讀取Firestore資料(根據lab遞減排序,取前4)</a><br>"
-
+    link += "<a href=/read>讀取Firestore資料(根據lab遞減排序,取前4)</a><hr>"
+    link += "<a href=/movie>查詢即將上映電影</a><hr>"
     return link
 
 @app.route("/read")
@@ -156,6 +159,29 @@ def search():
         return render_template("search.html", results=results, keyword=keyword)
     else:
         return render_template("search.html", results=None)
+
+@app.route("/movie")
+def movie():
+    url = "https://www.atmovies.com.tw/movie/next/"
+    Data = requests.get(url)
+    Data.encoding = "utf-8"
+    sp = BeautifulSoup(Data.text, "html.parser")
+    result = sp.select(".filmListAllX li")
+
+    movie_list = []
+    for item in result:
+        try:
+            # 抓取電影名稱
+            title = item.find("img").get("alt")
+            # 抓取連結並補上網域
+            link = "https://www.atmovies.com.tw" + item.find("a").get("href")
+            
+            # 將資料放入字典並存進清單
+            movie_list.append({"title": title, "link": link})
+        except:
+            continue
+
+    return render_template("movie.html", movies=movie_list)
 
 if __name__ == "__main__":
     app.run(debug=True)
