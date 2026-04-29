@@ -40,7 +40,7 @@ def index():
     link += "<a href=/read>讀取Firestore資料(根據lab遞減排序,取前4)</a><hr>"
     link += "<a href=/movie>查詢即將上映電影</a><hr>"
     link += "<a href=/movie2>讀取開眼電影即將上映影片，寫入Firestore</a><hr>"
-    link += "<a href=/searchQ>關鍵字電影查詢</a><hr>"
+    link += "<a href=/movie3>關鍵字電影查詢</a><hr>"
     return link
 
 @app.route("/read")
@@ -219,23 +219,30 @@ def movie2():
     doc_ref.set(doc)    
   return "近期上映電影已爬蟲及存檔完畢，網站最近更新日期為：" + lastUpdate 
 
-@app.route("/searchQ", methods=["POST","GET"])
-def searchQ():
+@app.route("/movie3", methods=["GET", "POST"])
+def movie3():
+    db = firestore.client()
+    results = []
+    keyword = ""
+    
     if request.method == "POST":
-        MovieTitle = request.form["MovieTitle"]
-        info = ""
-        db = firestore.client()     
-        collection_ref = db.collection("電影")
-        docs = collection_ref.order_by("showDate").get()
+        keyword = request.form.get("keyword")
+        collection_ref = db.collection("電影2A")
+        docs = collection_ref.get()
+
         for doc in docs:
-            if MovieTitle in doc.to_dict()["title"]: 
-                info += "片名：" + doc.to_dict()["title"] + "<br>" 
-                info += "影片介紹：" + doc.to_dict()["hyperlink"] + "<br>"
-                info += "片長：" + doc.to_dict()["showLength"] + " 分鐘<br>" 
-                info += "上映日期：" + doc.to_dict()["showDate"] + "<br><br>"           
-        return info
-    else:  
-        return render_template("searchQ.html")
+            movie = doc.to_dict()
+            if keyword in movie["title"]:
+                results.append({
+                    "title":  movie["title"],
+                    "picture": movie["picture"],
+                    "hyperlink": movie["hyperlink"],
+                    "showDate": movie["showDate"],
+                    "showLength": movie["showLength"],
+                    "lastUpdate": movie["lastUpdate"]
+                })
+
+    return render_template("movie3.html", results=results, keyword=keyword)
 
 if __name__ == "__main__":
     app.run(debug=True)
