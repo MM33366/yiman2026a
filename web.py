@@ -42,6 +42,7 @@ def index():
     link += "<a href=/movie2>讀取開眼電影即將上映影片，寫入Firestore</a><hr>"
     link += "<a href=/movie3>關鍵字電影查詢</a><hr>"
     link += "<a href=/road>十大高肇事路口</a><hr>"
+    link += "<a href=/weather>查詢縣市天氣預報</a><hr>"
     return link
 
 @app.route("/read")
@@ -256,6 +257,35 @@ def road():
     for item in JsonData:
         R += item["路口名稱"] + ",總共發生" + item["總件數"] + "件事故<br>"
     return R
+
+@app.route("/weather", methods=["GET", "POST"])
+def weather():
+    if request.method == "POST":
+        city = request.form.get("city")
+        city = city.replace("台", "臺") 
+
+        url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=rdec-key-123-45678-011121314&format=JSON&locationName=" + city
+        
+        try:
+            data = requests.get(url, verify=False)
+            json_data = json.loads(data.text)
+            
+            location = json_data["records"]["location"][0]
+
+            weather_state = location["weatherElement"][0]["time"][0]["parameter"]["parameterName"]
+            rain_prob = location["weatherElement"][1]["time"][0]["parameter"]["parameterName"]
+            
+            result = {
+                "city": city,
+                "weather": weather_state,
+                "rain": rain_prob
+            }
+            return render_template("weather.html", result=result)
+            
+        except:
+            return render_template("weather.html", error="抱歉，找不到該縣市的氣象資料。")
+    else:
+        return render_template("weather.html", result=None)
 
 if __name__ == "__main__":
     app.run(debug=True)
