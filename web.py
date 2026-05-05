@@ -41,6 +41,7 @@ def index():
     link += "<a href=/movie>查詢即將上映電影</a><hr>"
     link += "<a href=/movie2>讀取開眼電影即將上映影片，寫入Firestore</a><hr>"
     link += "<a href=/movie3>關鍵字電影查詢</a><hr>"
+    link += "<a href=/road>十大高肇事路口</a><hr>"
     return link
 
 @app.route("/read")
@@ -243,6 +244,18 @@ def movie3():
                 })
 
     return render_template("movie3.html", results=results, keyword=keyword)
+
+@app.route("/road")
+def road():
+    R = ""
+    url = "https://newdatacenter.taichung.gov.tw/api/v1/no-auth/resource.download?rid=a1b899c0-511f-4e3d-b22b-814982a97e41"
+    Data = requests.get(url, verify=False)
+    #print(Data.text)
+
+    JsonData = json.loads(Data.text)
+    for item in JsonData:
+        R += item["路口名稱"] + ",總共發生" + item["總件數"] + "件事故<br>"
+    return R
 
 if __name__ == "__main__":
     app.run(debug=True)
