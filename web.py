@@ -359,7 +359,7 @@ def webhook():
     # fetch queryResult from json
     action =  req["queryResult"]["action"]
     msg =  req["queryResult"]["queryText"]
-    info = "我使陳沂蔓的電影聊天機器人,動作：" + action + "； 查詢內容：" + msg
+    info = "我是陳沂蔓的電影聊天機器人,動作：" + action + "； 查詢內容：" + msg
     return make_response(jsonify({"fulfillmentText": info}))
 
 
