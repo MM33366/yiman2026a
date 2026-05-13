@@ -357,53 +357,31 @@ def webhook():
     req = request.get_json(force=True)
     action = req["queryResult"]["action"]
     
-    # 預設回傳訊息，預防沒有匹配到 action 時報錯
-    info = "我是陳沂蔓設計的電影聊天機器人，請問您想查詢什麼呢？"
-
-    # 處理分級查詢 (原本的邏輯)
-    if (action == "rateChoice"):
-        rate = req["queryResult"]["parameters"].get("rate")
-        info = f"我是陳沂蔓設計的電影聊天機器人，您選擇的電影分級是：{rate}"
-        # 如果你想在這裡直接列出該分級的電影，可以在此加入 Firestore 查詢邏輯
-
-    # 處理詳細屬性查詢 (新增的邏輯)
-    elif (action == "MovieDetail"):
-        question = req.get("queryResult").get("parameters").get("filmq") # 使用者想查的類別 (如：片名)
-        keyword = req.get("queryResult").get("parameters").get("any")   # 關鍵字 (如：超人)
+    if action == "rateChoice":
+        # 取得 Dialogflow 傳來的分級參數 (例如：G級, 普遍級)
+        user_rate = req["queryResult"]["parameters"].get("rate")
         
-        # 欄位對照表：將使用者的口語轉換為資料庫欄位名稱
-        mapping = {
-            "片名": "title",
-            "分級": "rate",
-            "上映日期": "showDate",
-            "日期": "showDate",
-            "長度": "showLength"
-        }
+        info = f"我是陳沂蔓設計的電影聊天機器人，您選擇的分級是：{user_rate}\n\n符合條件的電影如下：\n"
         
-        field_name = mapping.get(question, "title") # 預設查 title
-        info = f"我是陳沂蔓開發的電影聊天機器人，您要查詢電影的 {question}，關鍵字是：{keyword}\n\n"
-
         db = firestore.client()
-        collection_ref = db.collection("電影含分級")
-        docs = collection_ref.get()
+        # 搜尋資料庫中符合該分級的電影
+        collection_ref = db.collection("電影2A")
+        docs = collection_ref.where("rate", "==", user_rate).get()
         
         found = False
         for doc in docs:
-            dict_data = doc.to_dict()
-            # 使用 str() 確保數值型欄位也能比對，且使用 in 進行模糊搜尋
-            if keyword in str(dict_data.get(field_name, "")):
-                found = True 
-                info += f"片名：{dict_data.get('title')}\n"
-                info += f"海報：{dict_data.get('picture')}\n"
-                info += f"影片介紹：{dict_data.get('hyperlink')}\n"
-                info += f"片長：{dict_data.get('showLength')} 分鐘\n"
-                info += f"分級：{dict_data.get('rate')}\n" 
-                info += f"上映日期：{dict_data.get('showDate')}\n\n"
+            found = True
+            movie = doc.to_dict()
+            info += f"🎬 片名：{movie['title']}\n"
+            info += f"📅 上映日期：{movie['showDate']}\n"
+            info += f"🔗 介紹：{movie['hyperlink']}\n\n"
         
         if not found:
-            info += f"很抱歉，目前在【{question}】中找不到符合「{keyword}」的相關電影喔。"
+            info = f"我是陳沂蔓，目前資料庫中沒有標記為「{user_rate}」的本週上映電影喔。"
 
-    return make_response(jsonify({"fulfillmentText": info}))
+        return make_response(jsonify({"fulfillmentText": info}))
+
+    return make_response(jsonify({"fulfillmentText": "抱歉，我不清楚這個指令。"}))
 
 
 if __name__ == "__main__":
