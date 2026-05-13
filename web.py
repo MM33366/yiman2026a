@@ -354,35 +354,36 @@ def rate():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
+    # build a request object
     req = request.get_json(force=True)
-    action = req["queryResult"]["action"]
+    # fetch queryResult from json
+    action =  req["queryResult"]["action"]
+    #msg =  req["queryResult"]["queryText"]
+    #info = "我是陳沂蔓設計的電影聊天機器人,動作：" + action + "； 查詢內容：" + msg
+    if (action == "rateChoice"):
+        rate =  req["queryResult"]["parameters"]["rate"]
+        info = "我是陳沂蔓設計的電影聊天機器人,您選擇的電影分級是：" + rate
+        question + "，關鍵字是：" + keyword + "\n\n"
+
+        if (question == "片名"):
+            db = firestore.client()
+            collection_ref = db.collection("電影含分級")
+            docs = collection_ref.get()
+            found = False
+            for doc in docs:
+                dict = doc.to_dict()
+                if keyword in dict["title"]:
+                    found = True 
+                    info += "片名：" + dict["title"] + "\n"
+                    info += "海報：" + dict["picture"] + "\n"
+                    info += "影片介紹：" + dict["hyperlink"] + "\n"
+                    info += "片長：" + dict["showLength"] + " 分鐘\n"
+                    info += "分級：" + dict["rate"] + "\n" 
+                    info += "上映日期：" + dict["showDate"] + "\n\n"
+            if not found:
+                info += "很抱歉，目前無符合這個關鍵字的相關電影喔"
+
+    return make_response(jsonify({"fulfillmentText": info}))
     
-    if action == "rateChoice":
-        # 取得 Dialogflow 傳來的分級參數 (例如：G級, 普遍級)
-        user_rate = req["queryResult"]["parameters"].get("rate")
-        
-        info = f"我是陳沂蔓設計的電影聊天機器人，您選擇的分級是：{user_rate}\n\n符合條件的電影如下：\n"
-        
-        db = firestore.client()
-        # 搜尋資料庫中符合該分級的電影
-        collection_ref = db.collection("電影2A")
-        docs = collection_ref.where("rate", "==", user_rate).get()
-        
-        found = False
-        for doc in docs:
-            found = True
-            movie = doc.to_dict()
-            info += f"🎬 片名：{movie['title']}\n"
-            info += f"📅 上映日期：{movie['showDate']}\n"
-            info += f"🔗 介紹：{movie['hyperlink']}\n\n"
-        
-        if not found:
-            info = f"我是陳沂蔓，目前資料庫中沒有標記為「{user_rate}」的本週上映電影喔。"
-
-        return make_response(jsonify({"fulfillmentText": info}))
-
-    return make_response(jsonify({"fulfillmentText": "抱歉，我不清楚這個指令。"}))
-
-
 if __name__ == "__main__":
     app.run(debug=True)
