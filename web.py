@@ -377,7 +377,7 @@ def webhook():
         for doc in docs:
             found = True
             m = doc.to_dict()
-            info += f"片名【{m['title']}】\n"
+            info += f"片名：【{m['title']}】\n"
             info += f"上映日期：{m['showDate']}\n"
             info += f"介紹網址：{m['hyperlink']}\n\n"
         
