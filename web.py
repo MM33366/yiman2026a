@@ -377,9 +377,9 @@ def webhook():
         for doc in docs:
             found = True
             m = doc.to_dict()
-            info += f"🎬【{m['title']}】\n"
-            info += f"📅 上映日期：{m['showDate']}\n"
-            info += f"🔗 介紹：{m['hyperlink']}\n\n"
+            info += f"片名【{m['title']}】\n"
+            info += f"上映日期：{m['showDate']}\n"
+            info += f"介紹網址：{m['hyperlink']}\n\n"
         
         if not found:
             info += f"很抱歉，目前找不到標記為「{rate}」的新片喔。"
@@ -410,11 +410,11 @@ def webhook():
             # 模糊搜尋：關鍵字是否出現在該欄位中
             if keyword in str(m.get(target_field, "")):
                 found = True 
-                info += f"🎬 片名：{m['title']}\n"
-                info += f"🎥 分級：{m['rate']}\n"
-                info += f"⏳ 片長：{m['showLength']} 分鐘\n"
-                info += f"📅 上映日期：{m['showDate']}\n"
-                info += f"🔗 介紹網址：{m['hyperlink']}\n\n"
+                info += f"片名：{m['title']}\n"
+                info += f"分級：{m['rate']}\n"
+                info += f"片長：{m['showLength']} 分鐘\n"
+                info += f"上映日期：{m['showDate']}\n"
+                info += f"介紹網址：{m['hyperlink']}\n\n"
         
         if not found:
             info += f"在【{question}】中找不到包含「{keyword}」的電影。"
