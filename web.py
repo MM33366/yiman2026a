@@ -416,7 +416,7 @@ def AI():
         contents='我想查詢靜宜大學資管系的評價？',
     )
 
-@app.route('/ask', methods=['GET', 'POST']) 
+@app.route("/ask", methods=['GET', 'POST']) 
 def ask():
     if request.method == "POST":
         user_prompt = request.form.get('prompt', '')
