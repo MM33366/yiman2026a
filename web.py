@@ -49,7 +49,8 @@ def index():
     link += "<a href=/weather>查詢縣市天氣預報</a><hr>"
     link += "<a href=/rate>本週新片含分級</a><hr>"
     link += "<a href=/demo>聊天機器人</a><hr>"
-
+    link += "<a href=/AI>AI</a><hr>"
+    link += "<a href=/ask>詢問Gemini</a><hr>"
     return link
 
 @app.route("/read")
@@ -426,6 +427,9 @@ def webhook():
     # 若 action 都不符合
     else:
         info += "我不太明白您的意思，您可以試試說「我想查普遍級電影」或「查詢片名有超人的電影」。"
+
+    elif (action == "input.unknown"):
+        info =  req["queryResult"]["queryText"]
 
     # 4. 回傳 JSON 給 Dialogflow
     return make_response(jsonify({"fulfillmentText": info}))
