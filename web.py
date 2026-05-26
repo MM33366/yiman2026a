@@ -429,9 +429,16 @@ def webhook():
         info += "我不太明白您的意思，您可以試試說「我想查普遍級電影」或「查詢片名有超人的電影」。"
 
     elif (action == "input.unknown"):
-        info =  req["queryResult"]["queryText"]
+        #info =  req["queryResult"]["queryText"]
 
-    # 4. 回傳 JSON 給 Dialogflow
+        # 每次使用者拜訪該路徑時，直接使用全域的 client 呼叫模型
+        response = client.models.generate_content(
+            model='gemini-3.5-flash',
+            contents='我想查詢靜宜大學資管系的評價？',
+    )
+
+    info = response.text
+
     return make_response(jsonify({"fulfillmentText": info}))
 
 @app.route("/demo")
